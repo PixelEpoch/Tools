@@ -1,0 +1,24 @@
+{
+  "name": "jar-launcher",
+  "version": "1.0.0",
+  "main": "index.js",
+  "bin": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "pkg . --out-path dist/ --targets node18-macos-arm64,node18-macos-x64",
+    "build:win": "pkg . --out-path dist/ --targets node18-win-x64",
+    "build:linux": "pkg . --out-path dist/ --targets node18-linux-x64,node18-linux-arm64"
+  },
+  "keywords": ["jar", "launcher", "cross-platform", "java"],
+  "author": "",
+  "license": "ISC",
+  "description": "跨平台JAR文件管理工具",
+  "pkg": {
+    "assets": [],
+    "targets": [
+      "node18-macos-arm64",
+      "node18-macos-x64"
+    ],
+    "outputPath": "dist"
+  }
+}
