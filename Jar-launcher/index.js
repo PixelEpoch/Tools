@@ -124,28 +124,42 @@ function startJarFile(jarPath) {
 
 // 显示JAR文件列表（美化版）
 function displayJarList(jarFiles) {
-  console.log('\n' + chalk.yellow.bold('[LIST] 找到的JAR文件:'));
+  console.log('\n' + chalk.yellow.bold('='.repeat(120)));
+  console.log(' ' .repeat(50) + chalk.yellow.bold('[LIST] 找到的JAR文件'));
+  console.log(chalk.yellow.bold('='.repeat(120)));
   
   const table = new Table({
-    head: [chalk.cyan('序号'), chalk.cyan('名称'), chalk.cyan('大小'), chalk.cyan('修改时间'), chalk.cyan('路径')],
-    colWidths: [5, 30, 15, 30, 60],
+    head: ['序号', '名称', '大小', '修改时间', '路径'],
+    colWidths: [8, 35, 18, 32, 70],
     style: {
-      head: ['cyan'],
-      border: ['gray']
+      head: ['brightCyan', 'bold'],
+      border: ['gray'],
+      compact: false,
+      colAligns: ['center', 'left', 'right', 'center', 'left']
+    },
+    chars: {
+      'top': '═', 'top-mid': '╤', 'top-left': '╔', 'top-right': '╗',
+      'bottom': '═', 'bottom-mid': '╧', 'bottom-left': '╚', 'bottom-right': '╝',
+      'left': '║', 'left-mid': '╟', 'mid': '─', 'mid-mid': '┼',
+      'right': '║', 'right-mid': '╢', 'middle': '│'
     }
   });
   
   jarFiles.forEach((jar, index) => {
+    // 交替行背景色
+    const rowStyle = index % 2 === 0 ? chalk.white : chalk.gray;
+    
     table.push([
-      index + 1,
-      chalk.green(jar.name),
-      chalk.yellow(formatFileSize(jar.size)),
-      chalk.blue(jar.mtime.toLocaleString()),
-      chalk.magenta(jar.path)
+      rowStyle(chalk.bold(index + 1)),
+      rowStyle(chalk.green(jar.name)),
+      rowStyle(chalk.yellow.bold(formatFileSize(jar.size))),
+      rowStyle(chalk.blue(jar.mtime.toLocaleString())),
+      rowStyle(chalk.magenta(jar.path))
     ]);
   });
   
   console.log(table.toString());
+  console.log(chalk.yellow.bold('='.repeat(120)));
 }
 
 // 10秒倒计时函数
@@ -201,14 +215,74 @@ async function cli() {
   
   displayJarList(jarFiles);
   
-  // 10秒倒计时自动启动第一个JAR文件
-  countdown(10, async () => {
+  // 添加选择功能
+  console.log('\n' + chalk.yellow.bold('请选择要执行的操作:'));
+  console.log(chalk.green('1 - ') + chalk.yellow('启动指定JAR文件'));
+  console.log(chalk.green('2 - ') + chalk.yellow('5秒后自动启动第一个JAR文件'));
+  console.log(chalk.green('3 - ') + chalk.yellow('退出程序'));
+  console.log(chalk.red('\n[INFO] 如果5秒内未选择，将自动启动第一个JAR文件'));
+  console.log('');
+  
+  // 5秒超时自动启动第一个JAR文件
+  const timeoutId = setTimeout(async () => {
+    console.log('\n[INFO] 5秒内未选择，自动启动第一个JAR文件...');
     try {
       await startJarFile(jarFiles[0].path);
     } catch (error) {
-      console.error('\n[ERROR] 启动失败:', error.message);
+      console.error(chalk.red('\n[ERROR] 启动失败:', error.message));
     } finally {
       rl.close();
+    }
+  }, 5000);
+  
+  rl.question(chalk.cyan('请输入选项 (1-3): '), async (answer) => {
+    // 清除超时定时器
+    clearTimeout(timeoutId);
+    
+    switch (answer.trim()) {
+      case '1':
+        // 选择要启动的JAR文件
+        rl.question(chalk.cyan('请输入要启动的JAR文件序号: '), async (jarIndex) => {
+          const index = parseInt(jarIndex.trim()) - 1;
+          if (index >= 0 && index < jarFiles.length) {
+            try {
+              await startJarFile(jarFiles[index].path);
+            } catch (error) {
+              console.error('\n[ERROR] 启动失败:', error.message);
+            } finally {
+              rl.close();
+            }
+          } else {
+            console.error('\n[ERROR] 无效的JAR文件序号');
+            rl.close();
+          }
+        });
+        break;
+        
+      case '2':
+        // 5秒倒计时自动启动第一个JAR文件
+        countdown(5, async () => {
+          try {
+            await startJarFile(jarFiles[0].path);
+          } catch (error) {
+            console.error('\n[ERROR] 启动失败:', error.message);
+          } finally {
+            rl.close();
+          }
+        });
+        break;
+        
+      case '3':
+        // 退出程序
+        console.log('\n[INFO] 程序已退出');
+        rl.close();
+        process.exit(0);
+        break;
+        
+      default:
+        console.error('\n[ERROR] 无效的选项');
+        rl.close();
+        break;
     }
   });
   
