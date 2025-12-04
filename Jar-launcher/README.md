@@ -1,130 +1,130 @@
-# JAR Launcher - 跨平台JAR文件管理工具
+# JAR Launcher - Cross-platform JAR File Management Tool
 
-## 功能介绍
+## Features
 
-JAR Launcher是一个基于Node.js开发的跨平台工具，用于扫描、管理和启动JAR文件。它提供了以下功能：
+JAR Launcher is a Node.js-based cross-platform tool for scanning, managing, and launching JAR files. It provides the following features:
 
-- 🔍 **文件扫描**：递归扫描当前目录及其子目录下的所有JAR文件
-- 📋 **JAR管理**：命令行界面，支持选择启动JAR文件，批量操作和常用JAR记忆
-- 🚀 **跨平台启动**：根据不同操作系统使用相应命令启动JAR文件
-- 💾 **配置保存**：自动记忆常用JAR文件，支持收藏功能
-- 🎯 **命令行参数**：支持自动化运行和批量操作
+- **File Scanning**: Recursively scans current directory and subdirectories for all JAR files
+- **JAR Management**: Command-line interface supporting JAR file selection, batch operations, and frequently used JAR memory
+- **Cross-platform Launch**: Uses appropriate commands to launch JAR files based on different operating systems
+- **Configuration Saving**: Automatically remembers frequently used JAR files, supports favorites functionality
+- **Command-line Parameters**: Supports automated running and batch operations
 
-## 支持的平台
+## Supported Platforms
 
-- macOS (ARM64 和 x64)
+- macOS (ARM64 and x64)
 - Windows (x64)
-- Linux (x64 和 ARM64)
+- Linux (x64 and ARM64)
 
-## 安装和使用
+## Installation and Usage
 
-### 方法1：直接使用Node.js运行
+### Method 1: Run directly with Node.js
 
-1. 确保已安装Node.js 18.x或更高版本
-2. 克隆或下载本项目
-3. 在项目目录中运行：
+1. Ensure Node.js 18.x or higher is installed
+2. Clone or download this project
+3. Run in the project directory:
    ```bash
    node index.js
    ```
 
-### 方法2：使用可执行文件（推荐）
+### Method 2: Use executable file (Recommended)
 
-#### macOS用户
+#### macOS Users
 
-1. 下载对应架构的可执行文件：
-   - ARM64 (M1/M2/M3)：`jar-launcher-arm64`
-   - x64 (Intel)：`jar-launcher-x64`
+1. Download the executable for your architecture:
+   - ARM64 (M1/M2/M3): `jar-launcher-arm64`
+   - x64 (Intel): `jar-launcher-x64`
 
-2. 赋予执行权限：
+2. Grant execution permission:
    ```bash
-   chmod +x jar-launcher-arm64  # 或 jar-launcher-x64
+   chmod +x jar-launcher-arm64  # or jar-launcher-x64
    ```
 
-3. 运行：
+3. Run:
    ```bash
-   ./jar-launcher-arm64  # 或 ./jar-launcher-x64
+   ./jar-launcher-arm64  # or ./jar-launcher-x64
    ```
 
-#### Windows/Linux用户
+#### Windows/Linux Users
 
-请参考「构建指南」部分，在对应平台上构建可执行文件。
+Please refer to the "Build Guide" section to build the executable file on your platform.
 
-## 命令行选项
+## Command-line Options
 
 ```
-JAR Launcher - 跨平台JAR文件管理工具
+JAR Launcher - Cross-platform JAR File Management Tool
 
-选项：
-  --scan, -s         扫描当前目录下的JAR文件
-  --start <path>, -r <path>  启动指定路径的JAR文件
-  --favorites, -f    显示收藏的JAR文件
-  --help, -h         显示帮助信息
+Options:
+  --scan, -s         Scan for JAR files in current directory
+  --start <path>, -r <path>  Launch JAR file at specified path
+  --favorites, -f    Display favorite JAR files
+  --help, -h         Display help information
 ```
 
-## 使用示例
+## Usage Examples
 
-### 1. 交互式模式
+### 1. Interactive Mode
 
-直接运行程序，进入交互式界面：
+Run the program directly to enter interactive mode:
 ```bash
 node index.js
 ```
 
-### 2. 扫描JAR文件
+### 2. Scan JAR Files
 
 ```bash
 node index.js --scan
 ```
 
-### 3. 直接启动JAR文件
+### 3. Directly Launch JAR File
 
 ```bash
 node index.js --start ./path/to/your/file.jar
 ```
 
-### 4. 查看收藏的JAR文件
+### 4. View Favorite JAR Files
 
 ```bash
 node index.js --favorites
 ```
 
-## 构建指南
+## Build Guide
 
-### 前提条件
+### Prerequisites
 
-- Node.js 18.x或更高版本
-- npm 或 yarn
+- Node.js 18.x or higher
+- npm or yarn
 
-### 安装依赖
+### Install Dependencies
 
 ```bash
 npm install -g pkg
 ```
 
-### 在macOS上构建
+### Build on macOS
 
 ```bash
-# 构建macOS平台的可执行文件
+# Build executable files for macOS platform
 npm run build
 ```
 
-### 在Windows上构建
+### Build on Windows
 
 ```bash
-# 构建Windows平台的可执行文件
+# Build executable file for Windows platform
 npm run build:win
 ```
 
-### 在Linux上构建
+### Build on Linux
 
 ```bash
-# 构建Linux平台的可执行文件
+# Build executable files for Linux platform
 npm run build:linux
 ```
 
-### 构建结果
+### Build Results
 
-构建成功后，可执行文件将生成在 `dist/` 目录中：
+After successful build, executable files will be generated in the `dist/` directory:
 
 - macOS ARM64: `dist/jar-launcher-arm64`
 - macOS x64: `dist/jar-launcher-x64`
@@ -132,58 +132,58 @@ npm run build:linux
 - Linux x64: `dist/jar-launcher-linux-x64`
 - Linux ARM64: `dist/jar-launcher-linux-arm64`
 
-## 配置文件
+## Configuration File
 
-程序会在当前目录下生成 `.jar-launcher-config.json` 配置文件，用于保存：
+The program will generate a `.jar-launcher-config.json` configuration file in the current directory to save:
 
-- 最近使用的JAR文件路径
-- 收藏的JAR文件列表
+- Recently used JAR file paths
+- Favorite JAR file list
 
-## 错误处理
+## Error Handling
 
-程序包含完善的错误处理机制，包括：
+The program includes comprehensive error handling mechanisms, including:
 
-- Java环境未安装检测
-- JAR文件不存在检测
-- 权限不足处理
-- 操作系统兼容性检查
+- Java environment not installed detection
+- JAR file not found detection
+- Permission error handling
+- Operating system compatibility check
 
-## 系统要求
+## System Requirements
 
-- **Java环境**：需要安装Java Runtime Environment (JRE) 8或更高版本
-- **Node.js**：开发和运行时需要Node.js 18.x或更高版本
-- **操作系统**：支持Windows 10+, macOS 10.15+, Linux (Ubuntu 18.04+, CentOS 7+)
+- **Java Environment**: Java Runtime Environment (JRE) 8 or higher is required
+- **Node.js**: Node.js 18.x or higher is required for development and runtime
+- **Operating System**: Supports Windows 10+, macOS 10.15+, Linux (Ubuntu 18.04+, CentOS 7+)
 
-## 开发说明
+## Development Notes
 
-### 项目结构
+### Project Structure
 
 ```
 jar-launcher/
-├── index.js          # 主程序文件
-├── package.json      # 项目配置
-├── README.md         # 说明文档
-└── dist/             # 构建输出目录
+├── index.js          # Main program file
+├── package.json      # Project configuration
+├── README.md         # Documentation
+└── dist/             # Build output directory
 ```
 
-### 主要功能模块
+### Main Functional Modules
 
-1. **文件扫描模块**：递归扫描目录下的JAR文件
-2. **配置管理模块**：读取和保存配置文件
-3. **命令行交互模块**：提供交互式操作界面
-4. **JAR启动模块**：根据操作系统启动JAR文件
-5. **错误处理模块**：处理各种异常情况
+1. **File Scanning Module**: Recursively scans directories for JAR files
+2. **Configuration Management Module**: Reads and saves configuration files
+3. **Command-line Interaction Module**: Provides interactive operation interface
+4. **JAR Launch Module**: Launches JAR files according to operating system
+5. **Error Handling Module**: Handles various exception cases
 
-## 许可证
+## License
 
 ISC License
 
-## 更新日志
+## Changelog
 
 ### v1.0.0
 
-- 初始版本
-- 实现JAR文件扫描和启动功能
-- 支持命令行参数和交互式操作
-- 支持macOS平台构建
-- 支持配置保存和收藏功能
+- Initial version
+- Implemented JAR file scanning and launching functionality
+- Supported command-line parameters and interactive operations
+- Supported macOS platform building
+- Supported configuration saving and favorites functionality

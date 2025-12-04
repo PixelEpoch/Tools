@@ -9,10 +9,15 @@
     "build:win": "pkg . --out-path dist/ --targets node18-win-x64",
     "build:linux": "pkg . --out-path dist/ --targets node18-linux-x64,node18-linux-arm64"
   },
-  "keywords": ["jar", "launcher", "cross-platform", "java"],
+  "keywords": [
+    "jar",
+    "launcher",
+    "cross-platform",
+    "java"
+  ],
   "author": "",
   "license": "ISC",
-  "description": "跨平台JAR文件管理工具",
+  "description": "Cross-platform JAR file management tool",
   "pkg": {
     "assets": [],
     "targets": [
@@ -20,5 +25,11 @@
       "node18-macos-x64"
     ],
     "outputPath": "dist"
+  },
+  "dependencies": {
+    "boxen": "^5.1.2",
+    "chalk": "^4.1.2",
+    "cli-table3": "^0.6.5",
+    "ora": "^5.4.1"
   }
 }

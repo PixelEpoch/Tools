@@ -1,1 +1,4 @@
 .DS_Store
+Jar-launcher/node_modules/*
+Jar-launcher/dist/*
+Jar-launcher/dist/jar-launcher.exe

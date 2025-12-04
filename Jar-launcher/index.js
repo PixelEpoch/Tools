@@ -4,6 +4,13 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 const readline = require('readline');
+const chalk = require('chalk');
+const boxen = require('boxen');
+const Table = require('cli-table3');
+const ora = require('ora');
+
+// 配置chalk，确保兼容Windows
+chalk.level = 2;
 
 // 扫描JAR文件
 function scanJarFiles(directory) {
@@ -31,7 +38,7 @@ function scanJarFiles(directory) {
         }
       }
     } catch (error) {
-      console.error(`❌ 扫描目录 ${dir} 失败:`, error.message);
+      console.error(`[ERROR] 扫描目录 ${dir} 失败:`, error.message);
     }
   }
   
@@ -51,12 +58,16 @@ function formatFileSize(bytes) {
 // 检查Java环境
 function checkJavaEnvironment() {
   return new Promise((resolve, reject) => {
+    const spinner = ora('正在检查Java环境...').start();
+    
     exec('java -version', (error, stdout, stderr) => {
       if (error) {
+        spinner.fail(chalk.red('未检测到Java环境'));
         resolve(false);
       } else {
         // Java版本信息在stderr中
         const versionInfo = stderr.toString();
+        spinner.succeed(chalk.green('Java环境检测成功'));
         resolve(versionInfo);
       }
     });
@@ -77,18 +88,29 @@ function startJarFile(jarPath) {
         command = `java -jar "${jarPath}"`;
         break;
       default:
-        reject(new Error(`❌ 不支持的操作系统: ${process.platform}`));
+        reject(new Error(`[ERROR] Unsupported operating system: ${process.platform}`));
         return;
     }
     
-    console.log('\n🚀 正在启动JAR文件...');
-    console.log(`📌 JAR路径: ${jarPath}`);
-    console.log(`💻 执行命令: ${command}`);
+    const startInfo = boxen(
+      chalk.green.bold('[START] Starting JAR File...') + '\n' +
+      chalk.blue(`[PATH] JAR Path: ${jarPath}`) + '\n' +
+      chalk.yellow(`[CMD] Command: ${command}`),
+      {
+        padding: 1,
+        borderStyle: 'round',
+        borderColor: 'green',
+        margin: 1
+      }
+    );
+    
+    console.log('\n' + '=' .repeat(80));
+    console.log(startInfo);
     console.log('=' .repeat(80));
     
     const child = exec(command, (error, stdout, stderr) => {
       if (error) {
-        reject(new Error(`❌ 启动失败: ${error.message}`));
+        reject(new Error(`[ERROR] Failed to start: ${error.message}`));
         return;
       }
       resolve({ stdout, stderr });
@@ -102,34 +124,49 @@ function startJarFile(jarPath) {
 
 // 显示JAR文件列表（美化版）
 function displayJarList(jarFiles) {
-  console.log('\n📦 找到的JAR文件:');
-  console.log('=' .repeat(80));
-  jarFiles.forEach((jar, index) => {
-    console.log(`\n${index + 1}. 📄 ${jar.name}`);
-    console.log(`   📁 路径: ${jar.path}`);
-    console.log(`   📊 大小: ${formatFileSize(jar.size)}`);
-    console.log(`   ⏰ 修改时间: ${jar.mtime.toLocaleString()}`);
+  console.log('\n' + chalk.yellow.bold('[LIST] 找到的JAR文件:'));
+  
+  const table = new Table({
+    head: [chalk.cyan('序号'), chalk.cyan('名称'), chalk.cyan('大小'), chalk.cyan('修改时间'), chalk.cyan('路径')],
+    colWidths: [5, 30, 15, 30, 60],
+    style: {
+      head: ['cyan'],
+      border: ['gray']
+    }
   });
-  console.log('\n' + '=' .repeat(80));
+  
+  jarFiles.forEach((jar, index) => {
+    table.push([
+      index + 1,
+      chalk.green(jar.name),
+      chalk.yellow(formatFileSize(jar.size)),
+      chalk.blue(jar.mtime.toLocaleString()),
+      chalk.magenta(jar.path)
+    ]);
+  });
+  
+  console.log(table.toString());
 }
 
 // 10秒倒计时函数
 function countdown(seconds, onComplete) {
   let remaining = seconds;
   
+  const spinner = ora({
+    text: chalk.yellow(`即将启动第一个JAR文件，倒计时 ${remaining} 秒... (按 Ctrl+C 取消)`),
+    spinner: 'clock'
+  }).start();
+  
   const timer = setInterval(() => {
     if (remaining > 0) {
-      process.stdout.write(`\r⏳ 即将启动第一个JAR文件，倒计时 ${remaining} 秒... (按 Ctrl+C 取消)`);
       remaining--;
+      spinner.text = chalk.yellow(`即将启动第一个JAR文件，倒计时 ${remaining} 秒... (按 Ctrl+C 取消)`);
     } else {
       clearInterval(timer);
-      process.stdout.write('\r✅ 倒计时结束，开始启动JAR文件！           \n');
+      spinner.succeed(chalk.green('倒计时结束，开始启动JAR文件！'));
       onComplete();
     }
   }, 1000);
-  
-  // 初始化显示
-  process.stdout.write(`\r⏳ 即将启动第一个JAR文件，倒计时 ${remaining} 秒... (按 Ctrl+C 取消)`);
 }
 
 // 命令行交互界面（带倒计时）
@@ -142,21 +179,22 @@ async function cli() {
   // 检查Java环境
   const javaInfo = await checkJavaEnvironment();
   if (!javaInfo) {
-    console.error('❌ 错误: 未检测到Java环境，请先安装Java Runtime Environment');
+    console.error(chalk.red('[ERROR] Error: Java Runtime Environment not detected, please install JRE first'));
     rl.close();
     process.exit(1);
   } else {
-    console.log('✅ Java环境检测成功:');
-    console.log(javaInfo.trim());
+    console.log(chalk.green('[OK] Java environment details:'));
+    console.log(chalk.gray(javaInfo.trim()));
   }
   
   // 扫描当前目录下的JAR文件
   const currentDir = process.cwd();
-  console.log(`\n🔍 正在扫描目录: ${currentDir}`);
+  const scanSpinner = ora(chalk.blue(`[SCAN] 正在扫描目录: ${currentDir}`)).start();
   const jarFiles = scanJarFiles(currentDir);
+  scanSpinner.succeed(chalk.blue(`[SCAN] 扫描完成，找到 ${jarFiles.length} 个JAR文件`));
   
   if (jarFiles.length === 0) {
-    console.log('❌ 未找到任何JAR文件');
+    console.log(chalk.yellow('[INFO] 未找到任何JAR文件'));
     rl.close();
     return;
   }
@@ -168,7 +206,7 @@ async function cli() {
     try {
       await startJarFile(jarFiles[0].path);
     } catch (error) {
-      console.error('\n❌ 启动失败:', error.message);
+      console.error('\n[ERROR] 启动失败:', error.message);
     } finally {
       rl.close();
     }
@@ -176,7 +214,7 @@ async function cli() {
   
   // 监听Ctrl+C取消
   process.on('SIGINT', () => {
-    console.log('\n\n❌ 已取消启动');
+    console.log('\n\n[CANCEL] 已取消启动');
     rl.close();
     process.exit(0);
   });
@@ -213,19 +251,19 @@ function handleCommandLineArgs() {
         
       case '--help':
       case '-h':
-        console.log('🟢 JAR Launcher 使用帮助:');
+        console.log(chalk.green.bold('[HELP] JAR Launcher 使用帮助:'));
         console.log('  node index.js [选项]');
         console.log('');
-        console.log('选项:');
-        console.log('  --scan, -s         🔍 扫描当前目录下的JAR文件');
-        console.log('  --start <path>, -r <path>  🚀 启动指定路径的JAR文件');
-        console.log('  --help, -h         ❓ 显示帮助信息');
+        console.log(chalk.yellow('选项:'));
+        console.log('  --scan, -s         ' + chalk.blue('[SCAN]') + ' 扫描当前目录下的JAR文件');
+        console.log('  --start <path>, -r <path>  ' + chalk.blue('[START]') + ' 启动指定路径的JAR文件');
+        console.log('  --help, -h         ' + chalk.blue('[HELP]') + ' 显示帮助信息');
         process.exit(0);
         break;
         
       default:
-        console.error(`❌ 未知选项: ${arg}`);
-        console.error('使用 --help 查看帮助信息');
+        console.error(chalk.red(`[ERROR] 未知选项: ${arg}`));
+        console.error(chalk.yellow('使用 --help 查看帮助信息'));
         process.exit(1);
     }
   }
@@ -233,8 +271,9 @@ function handleCommandLineArgs() {
   // 执行相应操作
   if (options.scan) {
     const currentDir = process.cwd();
-    console.log(`🔍 正在扫描目录: ${currentDir}`);
+    const scanSpinner = ora(chalk.blue(`[SCAN] 正在扫描目录: ${currentDir}`)).start();
     const jarFiles = scanJarFiles(currentDir);
+    scanSpinner.succeed(chalk.blue(`[SCAN] 扫描完成，找到 ${jarFiles.length} 个JAR文件`));
     displayJarList(jarFiles);
     process.exit(0);
   }
@@ -242,12 +281,12 @@ function handleCommandLineArgs() {
   if (options.start) {
     checkJavaEnvironment().then(javaInfo => {
       if (!javaInfo) {
-        console.error('❌ 错误: 未检测到Java环境，请先安装Java Runtime Environment');
+        console.error('[ERROR] 错误: 未检测到Java环境，请先安装Java Runtime Environment');
         process.exit(1);
       }
       
       startJarFile(options.start).catch(error => {
-        console.error('❌ 启动失败:', error.message);
+        console.error('[ERROR] 启动失败:', error.message);
         process.exit(1);
       });
     });
@@ -256,11 +295,20 @@ function handleCommandLineArgs() {
 
 // 主函数
 function main() {
-  console.log('🎯' + '=' .repeat(78) + '🎯');
-  console.log('🚀 JAR Launcher - 跨平台JAR文件管理工具 🚀');
-  console.log('🎯' + '=' .repeat(78) + '🎯');
-  console.log('📝 自动扫描JAR文件，10秒后启动第一个文件');
-  console.log('⌨️  支持命令行参数，使用 --help 查看帮助\n');
+  const header = boxen(
+    chalk.green.bold('JAR Launcher') + ' - 跨平台JAR文件管理工具',
+    {
+      padding: 1,
+      margin: 1,
+      borderStyle: 'round',
+      borderColor: 'green',
+      backgroundColor: '#f0f0f0'
+    }
+  );
+  
+  console.log(header);
+  console.log(chalk.blue('[INFO]') + ' 自动扫描JAR文件，10秒后启动第一个文件');
+  console.log(chalk.blue('[INFO]') + ' 支持命令行参数，使用 --help 查看帮助\n');
   
   handleCommandLineArgs();
 }
